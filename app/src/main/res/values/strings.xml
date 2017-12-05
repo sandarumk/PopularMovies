@@ -6,4 +6,6 @@
     <string name="settings_title">Settings</string>
     <string name="movie_poster">Poster of the Movie</string>
     <string name="rating">%1$s/10.0</string>
+    <string name="trailers">Trailers:</string>
+    <string name="reviews">Reviews</string>
 </resources>

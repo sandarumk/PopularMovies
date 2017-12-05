@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -15,10 +17,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.example.sandarumk.popularmovies.adapters.MovieAdapter;
+import com.example.sandarumk.popularmovies.data.MovieDBHelper;
+import com.example.sandarumk.popularmovies.data.MoviesContract;
 import com.example.sandarumk.popularmovies.utilities.MoviesJsonUtils;
 import com.example.sandarumk.popularmovies.utilities.NetworkUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
@@ -62,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         switch (item.getItemId()){
             case R.id.mi_settings:
                 SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-                int checkedItem = sharedPref.getInt(Constants.SORT_ORDER, Constants.SORT_ORDER_POPULAR);
+                final int checkedItem = sharedPref.getInt(Constants.SORT_ORDER, Constants.SORT_ORDER_POPULAR);
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle(R.string.dialog_title_sort_order_selecter)
                         .setSingleChoiceItems(R.array.sort_types,checkedItem,new DialogInterface.OnClickListener() {
@@ -72,17 +78,45 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                                 editor.putInt(Constants.SORT_ORDER, which);
                                 editor.apply();
                                 dialog.dismiss();
-                                FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-                                fetchMoviesTask.execute();
+
+                                if(which == Constants.SORT_ORDER_FAVOURITES){
+                                    mMovieAdapter.setMovieData(getFavouriteMovieData());
+                                }else{
+                                    FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
+                                    fetchMoviesTask.execute();
+                                }
+
 
                             }
 
                         });
 
                 builder.create().show();
+
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private List<Movie> getFavouriteMovieData() {
+        List<Movie> movieList = new ArrayList<>();
+        String[] columns = {MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID, MoviesContract.FavouriteMovies.COLUMN_NAME_TITLE, MoviesContract.FavouriteMovies.COLUMN_NAME_RELEASE_DATE, MoviesContract.FavouriteMovies.COLUMN_NAME_RATING,MoviesContract.FavouriteMovies.COLUMN_NAME_PLOT_SNYPNOSYS, MoviesContract.FavouriteMovies.COLUMN_NAME_ORIGINAL_TITLE, MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_POSTER_PATH};
+        MovieDBHelper dbHelper = new MovieDBHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor =db.query(MoviesContract.FavouriteMovies.TABLE_NAME,columns,null,null,null,null,null);
+        while(cursor.moveToNext()){
+            String movieID = cursor.getString(cursor.getColumnIndex(MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID));
+            String title = cursor.getString(cursor.getColumnIndex(MoviesContract.FavouriteMovies.COLUMN_NAME_TITLE));
+            String originalTitle = cursor.getString(cursor.getColumnIndex(MoviesContract.FavouriteMovies.COLUMN_NAME_ORIGINAL_TITLE));
+            String plotsynopsis = cursor.getString(cursor.getColumnIndex(MoviesContract.FavouriteMovies.COLUMN_NAME_PLOT_SNYPNOSYS));
+            String rating = cursor.getString(cursor.getColumnIndex(MoviesContract.FavouriteMovies.COLUMN_NAME_RATING));
+            String releaseDate = cursor.getString(cursor.getColumnIndex(MoviesContract.FavouriteMovies.COLUMN_NAME_RELEASE_DATE));
+            String posterPath = cursor.getString(cursor.getColumnIndex(MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_POSTER_PATH));
+            Movie movie= new Movie(title,originalTitle,plotsynopsis,rating,releaseDate,posterPath,movieID);
+            movieList.add(movie);
+
+        }
+        return movieList;
     }
 
     @Override
@@ -95,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         intent.putExtra(Constants.POSTER_PATH,movie.getPosterPath());
         intent.putExtra(Constants.OVERVIEW,movie.getPlotSypnosis());
         intent.putExtra(Constants.USER_RATING,movie.getRating());
+        intent.putExtra(Constants.ID,movie.getID());
         startActivity(intent);
     }
 

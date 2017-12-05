@@ -12,14 +12,16 @@ public class Movie {
     private String rating;
     private String releaseDate;
     private String posterPath;
+    private String id;
 
-    public Movie(String title, String originalTitle, String plotSypnosis, String rating, String releaseDate, String posterPath) {
+    public Movie(String title, String originalTitle, String plotSypnosis, String rating, String releaseDate, String posterPath,String id) {
         this.title = title;
         this.originalTitle = originalTitle;
         this.plotSypnosis = plotSypnosis;
         this.rating = rating;
         this.releaseDate = releaseDate;
         this.posterPath = posterPath;
+        this.id = id;
     }
 
     public String getTitle() {
@@ -45,5 +47,10 @@ public class Movie {
     public String getPosterPath() {
         return posterPath;
     }
+
+    public String getID() {
+        return id;
+    }
+
 
 }

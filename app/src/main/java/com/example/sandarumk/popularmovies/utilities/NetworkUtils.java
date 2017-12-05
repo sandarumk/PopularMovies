@@ -69,4 +69,38 @@ public class NetworkUtils {
             urlConnection.disconnect();
         }
     }
+
+    public static URL buildTrailerURL(Context context, String movieID){
+        URL url = null;
+        Uri builtUri = Uri.parse(MOVIE_DB_BASE_URL).buildUpon()
+                .appendQueryParameter(API_KEY, context.getString(R.string.movie_db_api_key))
+                .appendQueryParameter(LANUGUAGE, context.getString(R.string.language_en_us))
+                .appendPath(movieID)
+                .appendPath("videos")
+                .build();
+        try {
+            url = new URL(builtUri.toString());
+            Log.d(TAG, url.toString());
+        } catch (MalformedURLException e) {
+            Log.e(TAG, e.toString());
+        }
+        return url;
+    }
+
+    public static URL buildReviewURL(Context context, String movieID){
+        URL url = null;
+        Uri builtUri = Uri.parse(MOVIE_DB_BASE_URL).buildUpon()
+                .appendQueryParameter(API_KEY, context.getString(R.string.movie_db_api_key))
+                .appendQueryParameter(LANUGUAGE, context.getString(R.string.language_en_us))
+                .appendPath(movieID)
+                .appendPath("reviews")
+                .build();
+        try {
+            url = new URL(builtUri.toString());
+            Log.d(TAG, url.toString());
+        } catch (MalformedURLException e) {
+            Log.e(TAG, e.toString());
+        }
+        return url;
+    }
 }

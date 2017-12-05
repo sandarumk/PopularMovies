@@ -3,6 +3,7 @@
     <string-array name="sort_types">
         <item>Most Popular</item>
         <item>Top Rated</item>
+        <item>Favourites</item>
     </string-array>
 
 </resources>
