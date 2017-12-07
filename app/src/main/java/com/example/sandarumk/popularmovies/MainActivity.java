@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -30,8 +31,10 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String BUNDLE_RECYCLER_LAYOUT = "RECYCLER_VIEW_LAYOUT";
 
     private MovieAdapter mMovieAdapter;
+    private Parcelable recyclerState;
 
 
     @Override
@@ -43,17 +46,26 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         RecyclerView mRecyclerView;
 
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_launcher_view);
-        GridLayoutManager layoutManager
-                = new GridLayoutManager(getApplicationContext(),2);
+        GridLayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setHasFixedSize(true);
 
         mMovieAdapter = new MovieAdapter(this);
         mRecyclerView.setAdapter(mMovieAdapter);
 
-        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-        fetchMoviesTask.execute();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        int checkedItem = sharedPref.getInt(Constants.SORT_ORDER, Constants.SORT_ORDER_POPULAR);
+        if(checkedItem == Constants.SORT_ORDER_FAVOURITES){
+            mMovieAdapter.setMovieData(getFavouriteMovieData());
+        }else{
+            FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
+            fetchMoviesTask.execute();
+        }
     }
 
     @Override
@@ -120,6 +132,26 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        RecyclerView recyclerViewReviews;
+        recyclerViewReviews = (RecyclerView) findViewById(R.id.rv_launcher_view);
+        recyclerState = recyclerViewReviews.getLayoutManager().onSaveInstanceState();
+        outState.putParcelable(BUNDLE_RECYCLER_LAYOUT, recyclerState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        RecyclerView recyclerViewReviews;
+        recyclerViewReviews = (RecyclerView) findViewById(R.id.rv_launcher_view);
+        if(savedInstanceState != null){
+            recyclerState = savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT);
+            recyclerViewReviews.getLayoutManager().onRestoreInstanceState(recyclerState);
+        }
+    }
+
+    @Override
     public void onClick(Movie movie) {
         Context context = this;
         Intent intent = new Intent(context, MovieDetailActivity.class);
@@ -157,6 +189,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         protected void onPostExecute(List<Movie> movies) {
             if (movies != null) {
                 mMovieAdapter.setMovieData(movies);
+                if(recyclerState != null){
+                    ((RecyclerView) findViewById(R.id.rv_launcher_view)).getLayoutManager().onRestoreInstanceState(recyclerState);
+                    recyclerState=null;
+                }
             }
         }
     }

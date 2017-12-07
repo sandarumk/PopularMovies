@@ -4,11 +4,11 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="vertical"
-    android:paddingEnd="8dp"
-    android:paddingLeft="8dp"
-    android:paddingRight="8dp"
-    android:layout_marginBottom="12dp"
-    android:paddingStart="8dp">
+    android:paddingEnd="@dimen/review_list_item_padding"
+    android:paddingLeft="@dimen/review_list_item_padding"
+    android:paddingRight="@dimen/review_list_item_padding"
+    android:layout_marginBottom="@dimen/review_list_item_layout_margin"
+    android:paddingStart="@dimen/review_list_item_padding">
 
     <TextView
         android:id="@+id/tv_author"
@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:visibility="visible"
         android:textStyle="bold"
-        android:textSize="16sp"
+        android:textSize="@dimen/review_author_text_size"
         />
 
     <TextView

@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 /**
  * Created by dinu on 12/5/17.
@@ -22,10 +23,11 @@ public class MoviesContentProvider extends ContentProvider {
 
     private static final UriMatcher sURIMatcher = buildUriMatcher();
 
-    public static UriMatcher buildUriMatcher(){
+    public static UriMatcher buildUriMatcher() {
         UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(MoviesContract.AUTHORITY,MoviesContract.PATH_MOVIES,MOVIES);
-        uriMatcher.addURI(MoviesContract.AUTHORITY,MoviesContract.PATH_MOVIES +"/#",MOVIES_WITH_ID);
+        uriMatcher.addURI(MoviesContract.AUTHORITY, MoviesContract.PATH_MOVIES, MOVIES);
+        uriMatcher.addURI(MoviesContract.AUTHORITY, MoviesContract.PATH_MOVIES + "/#",
+                MOVIES_WITH_ID);
         return uriMatcher;
     }
 
@@ -37,26 +39,28 @@ public class MoviesContentProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
+                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+        Log.d("Content Provider", "Querying Content Provider");
         final SQLiteDatabase db = mMoviesDBHelper.getWritableDatabase();
         int match = sURIMatcher.match(uri);
         Cursor returnCursor;
-        switch (match){
+        switch (match) {
             case MOVIES_WITH_ID:
                 String id = uri.getPathSegments().get(1);
-                String mselection = MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID+" =?";
+                String mselection = MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID + " =?";
                 String[] mSelectionArgs = new String[]{id};
 
-                returnCursor=db.query(MoviesContract.FavouriteMovies.TABLE_NAME,
-                       projection,
-                       mselection,
-                       mSelectionArgs,
-                       null,
-                       null,
-                       sortOrder);
+                returnCursor = db.query(MoviesContract.FavouriteMovies.TABLE_NAME,
+                        projection,
+                        mselection,
+                        mSelectionArgs,
+                        null,
+                        null,
+                        sortOrder);
                 break;
             default:
-                throw new UnsupportedOperationException("URI uri"+ uri);
+                throw new UnsupportedOperationException("URI uri" + uri);
 
         }
         returnCursor.setNotificationUri(getContext().getContentResolver(), uri);
@@ -75,30 +79,46 @@ public class MoviesContentProvider extends ContentProvider {
         final SQLiteDatabase db = mMoviesDBHelper.getWritableDatabase();
         int match = sURIMatcher.match(uri);
         Uri returnUri;
-        switch (match){
+        switch (match) {
             case MOVIES:
-                long id = db.insert(MoviesContract.FavouriteMovies.TABLE_NAME,null,values);
-                if(id > 0){
-                    returnUri = ContentUris.withAppendedId(uri,id);
+                long id = db.insert(MoviesContract.FavouriteMovies.TABLE_NAME, null, values);
+                if (id > 0) {
+                    returnUri = ContentUris.withAppendedId(uri, id);
 
-                }else{
+                } else {
                     throw new SQLException("Failed to insert");
                 }
                 break;
             default:
-                throw new UnsupportedOperationException("Uri "+ uri);
+                throw new UnsupportedOperationException("Uri " + uri);
         }
-        getContext().getContentResolver().notifyChange(uri,null);
-        return null;
+        getContext().getContentResolver().notifyChange(uri, null);
+        return returnUri;
     }
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+        final SQLiteDatabase db = mMoviesDBHelper.getWritableDatabase();
+        int match = sURIMatcher.match(uri);
+        int tasksDeleted; // starts as 0
+        switch (match) {
+            case MOVIES_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+                tasksDeleted = db.delete(MoviesContract.FavouriteMovies.TABLE_NAME,
+                        "movie_id=?", new String[]{id});
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        if (tasksDeleted != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return tasksDeleted;
     }
 
     @Override
-    public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
+    public int update(@NonNull Uri uri, @Nullable ContentValues values,
+                      @Nullable String selection, @Nullable String[] selectionArgs) {
         return 0;
     }
 }

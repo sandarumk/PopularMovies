@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="original_title_padding">16dp</dimen>
+    <dimen name="original_title_text_size">34sp</dimen>
+    <dimen name="image_view_padding">8dp</dimen>
+    <dimen name="movie_detail_text_view_padding">8dp</dimen>
+    <dimen name="movie_detail_text_size">24sp</dimen>
+    <dimen name="star_size">40sp</dimen>
+    <dimen name="review_list_item_padding">8dp</dimen>
+    <dimen name="review_list_item_layout_margin">12dp</dimen>
+    <dimen name="review_author_text_size">16sp</dimen>
+</resources>

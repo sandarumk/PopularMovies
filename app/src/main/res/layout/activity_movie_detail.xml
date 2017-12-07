@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.sandarumk.popularmovies.MovieDetailActivity">
+    tools:context="com.example.sandarumk.popularmovies.MovieDetailActivity"
+    android:id="@+id/sv_movie_detail">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,9 +17,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:background="@color/colortheme"
-            android:padding="16dp"
+            android:padding="@dimen/original_title_padding"
             android:textColor="@color/colortexttheme"
-            android:textSize="34sp" />
+            android:textSize="@dimen/original_title_text_size" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -31,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
                 android:contentDescription="@string/movie_poster"
-                android:padding="8dp" />
+                android:padding="@dimen/image_view_padding" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -42,15 +43,15 @@
                     android:id="@+id/tv_release_date"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:textSize="24sp" />
+                    android:padding="@dimen/movie_detail_text_view_padding"
+                    android:textSize="@dimen/movie_detail_text_size" />
 
                 <TextView
                     android:id="@+id/tv_user_rating"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:textSize="24sp" />
+                    android:padding="@dimen/movie_detail_text_view_padding"
+                    android:textSize="@dimen/movie_detail_text_size" />
 
                 <TextView
                     android:id="@+id/ib_star_fav"
@@ -59,7 +60,7 @@
                     android:background="#00ffffff"
                     android:onClick="onToggleStar"
                     android:text="★"
-                    android:textSize="40sp" />
+                    android:textSize="@dimen/star_size" />
 
 
             </LinearLayout>

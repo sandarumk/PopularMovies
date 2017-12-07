@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -13,13 +12,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.sandarumk.popularmovies.adapters.ReviewAdapter;
 import com.example.sandarumk.popularmovies.adapters.TrailersAdapter;
-import com.example.sandarumk.popularmovies.data.MovieDBHelper;
 import com.example.sandarumk.popularmovies.data.MoviesContract;
 import com.example.sandarumk.popularmovies.utilities.MoviesJsonUtils;
 import com.example.sandarumk.popularmovies.utilities.NetworkUtils;
@@ -31,12 +32,14 @@ import java.util.List;
 public class MovieDetailActivity extends AppCompatActivity implements TrailersAdapter.TrailersAdapterOnClickHandler{
 
     private static final String TAG = MovieDetailActivity.class.getSimpleName();
+    private static final String SCROLL_POSITION = "SCROLL_POSITION";
+
 
     private TrailersAdapter mTrailersAdapter;
     private ReviewAdapter mReviewAdapter;
+    private ScrollView mScrollView;
     private boolean isfavourite;
     private TextView favouriteStar;
-    private SQLiteDatabase db;
     private String favouriteMovieID;
     private String favouriteMoviePoster;
     private String favouriteMovieRating;
@@ -44,7 +47,6 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailersAd
     private String facouriteMovieOriginalTitle;
     private String favouriteMoviePlotSypnosis;
     private String favouriteMoviereleaseDate;
-    private boolean isfavouriteInDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,10 +64,9 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailersAd
 
         TextView userRating = (TextView) findViewById(R.id.tv_user_rating) ;
 
-        favouriteStar = (TextView) findViewById(R.id.ib_star_fav);
+        mScrollView = (ScrollView) findViewById(R.id.sv_movie_detail);
 
-        MovieDBHelper dbHelper = new MovieDBHelper(this);
-        db = dbHelper.getWritableDatabase();
+        favouriteStar = (TextView) findViewById(R.id.ib_star_fav);
 
         String originalTitle;
         String posterPath;
@@ -145,20 +146,16 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailersAd
                 if(isFavourite(id)){
                     isfavourite = true;
                     favouriteStar.setTextColor(Color.parseColor("#FFD600"));
-                    isfavouriteInDB = true;
                 }
 
             }
         }
         setTitle(R.string.movie_detail_activity_title);
-
-
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(isfavourite && !isfavouriteInDB){
+
+    private void saveInFavourite() {
+        if(isfavourite){
             ContentValues cv = new ContentValues();
             cv.put(MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID,favouriteMovieID);
             cv.put(MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_POSTER_PATH,favouriteMoviePoster);
@@ -167,16 +164,19 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailersAd
             cv.put(MoviesContract.FavouriteMovies.COLUMN_NAME_RELEASE_DATE,favouriteMoviereleaseDate);
             cv.put(MoviesContract.FavouriteMovies.COLUMN_NAME_PLOT_SNYPNOSYS,favouriteMoviePlotSypnosis);
             cv.put(MoviesContract.FavouriteMovies.COLUMN_NAME_RATING,favouriteMovieRating);
-            long rowId = db.insert(MoviesContract.FavouriteMovies.TABLE_NAME,null,cv);
-            System.out.println(rowId);
-        }
-        if(!isfavourite && isfavouriteInDB){
-            db.delete(MoviesContract.FavouriteMovies.TABLE_NAME, MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID +" = "+ favouriteMovieID, null);
+            Uri uri = getContentResolver().insert(MoviesContract.FavouriteMovies.CONTENT_URI,cv);
+            if(uri != null){
+                Log.d(TAG,"Uri "+uri);
+            }
+        }else{
+            Uri uri = MoviesContract.FavouriteMovies.CONTENT_URI.buildUpon().appendPath(favouriteMovieID).build();
+            getContentResolver().delete(uri,null,null);
         }
     }
 
     private boolean isFavourite(String id) {
-        Cursor cursor= db.query(MoviesContract.FavouriteMovies.TABLE_NAME,null, MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID + "= ?",new String[]{id},null,null,null);
+        Uri uri = MoviesContract.FavouriteMovies.CONTENT_URI.buildUpon().appendPath(id).build();
+        Cursor cursor = getContentResolver().query(uri,null,null,null,null);
         return cursor.moveToFirst();
     }
 
@@ -185,13 +185,35 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailersAd
         if(!isfavourite){
             isfavourite = true;
             favouriteStar.setTextColor(Color.parseColor("#FFD600"));
+            Toast.makeText(this,favouriteMovieTitle+"  movie marked as a favourite.",Toast.LENGTH_SHORT).show();
+
         }else{
             isfavourite = false;
             favouriteStar.setTextColor(Color.parseColor("#9E9E9E"));
+            Toast.makeText(this,favouriteMovieTitle+"  movie removed from favourites.",Toast.LENGTH_SHORT).show();
         }
+        saveInFavourite();
 
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
+        outState.putIntArray(SCROLL_POSITION,
+                new int[]{ mScrollView.getScrollX(), mScrollView.getScrollY()});
+    }
+
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        final int[] position = savedInstanceState.getIntArray(SCROLL_POSITION);
+        if(position != null)
+            mScrollView.post(new Runnable() {
+                public void run() {
+                    mScrollView.scrollTo(position[0], position[1]);
+                }
+            });
+    }
 
 
     @Override
@@ -261,5 +283,16 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailersAd
                 mReviewAdapter.setReviewData(reviews);
             }
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
