@@ -59,6 +59,10 @@ public class MoviesContentProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case MOVIES:
+                String[] columns = {MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID, MoviesContract.FavouriteMovies.COLUMN_NAME_TITLE, MoviesContract.FavouriteMovies.COLUMN_NAME_RELEASE_DATE, MoviesContract.FavouriteMovies.COLUMN_NAME_RATING,MoviesContract.FavouriteMovies.COLUMN_NAME_PLOT_SNYPNOSYS, MoviesContract.FavouriteMovies.COLUMN_NAME_ORIGINAL_TITLE, MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_POSTER_PATH};
+                returnCursor = db.query(MoviesContract.FavouriteMovies.TABLE_NAME,columns,null,null,null,null,null);
+                break;
             default:
                 throw new UnsupportedOperationException("URI uri" + uri);
 

@@ -5,7 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -19,7 +19,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import com.example.sandarumk.popularmovies.adapters.MovieAdapter;
-import com.example.sandarumk.popularmovies.data.MovieDBHelper;
 import com.example.sandarumk.popularmovies.data.MoviesContract;
 import com.example.sandarumk.popularmovies.utilities.MoviesJsonUtils;
 import com.example.sandarumk.popularmovies.utilities.NetworkUtils;
@@ -112,10 +111,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     private List<Movie> getFavouriteMovieData() {
         List<Movie> movieList = new ArrayList<>();
-        String[] columns = {MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID, MoviesContract.FavouriteMovies.COLUMN_NAME_TITLE, MoviesContract.FavouriteMovies.COLUMN_NAME_RELEASE_DATE, MoviesContract.FavouriteMovies.COLUMN_NAME_RATING,MoviesContract.FavouriteMovies.COLUMN_NAME_PLOT_SNYPNOSYS, MoviesContract.FavouriteMovies.COLUMN_NAME_ORIGINAL_TITLE, MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_POSTER_PATH};
-        MovieDBHelper dbHelper = new MovieDBHelper(this);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor =db.query(MoviesContract.FavouriteMovies.TABLE_NAME,columns,null,null,null,null,null);
+        Uri uri = MoviesContract.FavouriteMovies.CONTENT_URI;
+        Cursor cursor = getContentResolver().query(uri,null,null,null,null);
         while(cursor.moveToNext()){
             String movieID = cursor.getString(cursor.getColumnIndex(MoviesContract.FavouriteMovies.COLUMN_NAME_MOVIE_ID));
             String title = cursor.getString(cursor.getColumnIndex(MoviesContract.FavouriteMovies.COLUMN_NAME_TITLE));
